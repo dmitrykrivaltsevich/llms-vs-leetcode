@@ -1,4 +1,4 @@
-from 0001-two-sum import Solution
+from _0001_two_sum import Solution
 
 # Test cases
 solution = Solution()
