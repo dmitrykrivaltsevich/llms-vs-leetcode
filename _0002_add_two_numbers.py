@@ -1,18 +1,12 @@
 from typing import Optional
 
 # Definition for singly-linked list.
-class ListNode(object):
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
 
-    def __repr__(self):
-        if self.next:
-            return f"ListNode({self.val}, {repr(self.next)})"
-        else:
-            return f"ListNode({self.val})"
-
-class Solution(object):
+class Solution:
     def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
         """
         :type l1: Optional[ListNode]
