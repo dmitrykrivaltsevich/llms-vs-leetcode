@@ -6,8 +6,14 @@ class ListNode(object):
         self.val = val
         self.next = next
 
+    def __repr__(self):
+        if self.next:
+            return f"ListNode({self.val}, {repr(self.next)})"
+        else:
+            return f"ListNode({self.val})"
+
 class Solution(object):
-    def addTwoNumbers(self, l1, l2):
+    def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
         """
         :type l1: Optional[ListNode]
         :type l2: Optional[ListNode]
