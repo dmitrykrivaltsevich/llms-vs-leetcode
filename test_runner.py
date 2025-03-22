@@ -25,8 +25,26 @@ class TimeoutTestRunner(unittest.TextTestRunner):
 
         return result
 
+class TimeoutTestLoader(unittest.TestLoader):
+    def loadTestsFromNames(self, names, module=None):
+        suite = super().loadTestsFromNames(names, module)
+        for test in suite:
+            if isinstance(test, unittest.FunctionTestCase):
+                timeout = getattr(test._testMethodDoc, 'timeout', 1)
+                setattr(test, '_timeout', timeout)
+        return suite
+
+class TimeoutTestSuite(unittest.TestSuite):
+    def run(self, result, debug=False):
+        for test in self:
+            if isinstance(test, unittest.FunctionTestCase):
+                timeout = getattr(test, '_timeout', 1)
+                runner = TimeoutTestRunner(timeout=timeout)
+                result = runner.run(test)
+        return result
+
 if __name__ == '__main__':
-    loader = unittest.TestLoader()
+    loader = TimeoutTestLoader()
     suite = loader.loadTestsFromNames(['test_0480_sliding_window_median.py'])
-    runner = TimeoutTestRunner(timeout=1)
-    runner.run(suite)
+    runner = unittest.TextTestRunner()
+    runner.run(TimeoutTestSuite(suite))
