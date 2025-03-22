@@ -34,7 +34,7 @@
 # -2^31 <= nums[i] <= 2^31 - 1
 #
 # Make sure the implementation can handle nums size of 100000 and k=50000. The "heapq" solution is not performant enough for this case.
-# Do not use "heapq" -- it is not working for this problem.
+# Do not use "heapq" -- it is not working for this problem. The "bisect" seems to be working, but doesn't pass all tests, be careful.
 # Make edits below this line only
 #
 
@@ -43,48 +43,3 @@ import bisect
 
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
-        if not nums or k == 0:
-            return []
-
-        lower = []  # Sorted list for the lower half of the window
-        upper = []  # Sorted list for the upper half of the window
-
-        def insert(num):
-            if not lower or num <= -lower[-1]:
-                bisect.insort(lower, -num)
-            else:
-                bisect.insort(upper, num)
-
-            # Balance the lists
-            while len(lower) > len(upper) + 1:
-                val = -lower.pop()
-                upper.append(val)
-            while len(upper) > len(lower):
-                val = upper.pop(0)
-                lower.append(-val)
-
-        def remove(num):
-            if num <= get_median():
-                index = bisect.bisect_left(lower, -num)
-                if index < len(lower) and lower[index] == -num:
-                    del lower[index]
-            else:
-                index = bisect.bisect_left(upper, num)
-                if index < len(upper) and upper[index] == num:
-                    del upper[index]
-
-        def get_median():
-            if k % 2 == 1:
-                return -lower[-1]
-            else:
-                return (-lower[-1] + upper[0]) / 2.0
-
-        result = []
-        for i in range(len(nums)):
-            insert(nums[i])
-            if i >= k - 1:
-                result.append(get_median())
-                # Remove the element that is sliding out of the window
-                remove(nums[i - (k - 1)])
-
-        return result
