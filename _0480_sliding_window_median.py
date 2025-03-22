@@ -53,7 +53,7 @@ class Solution:
         for i in range(len(nums)):
             # Add the current number to the appropriate half
             if len(lower) == 0 or nums[i] <= -lower[0]:
-                bisect.insort(left, nums[i])
+                bisect.insort(lower, nums[i])
             else:
                 bisect.insort(upper, nums[i])
 
