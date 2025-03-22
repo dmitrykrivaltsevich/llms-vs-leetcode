@@ -8,18 +8,40 @@ class Solution:
 
         max_heap = []  # Max-heap to store the smaller half of numbers
         min_heap = []  # Min-heap to store the larger half of numbers
+        count_max = {}
+        count_min = {}
 
         def add_number(num):
             if len(max_heap) == 0 or num <= -max_heap[0]:
                 heapq.heappush(max_heap, -num)
+                count_max[num] = count_max.get(num, 0) + 1
             else:
                 heapq.heappush(min_heap, num)
+                count_min[num] = count_min.get(num, 0) + 1
 
             # Balance the heaps
             if len(max_heap) > len(min_heap) + 1:
-                heapq.heappush(min_heap, -heapq.heappop(max_heap))
+                val = -heapq.heappop(max_heap)
+                heapq.heappush(min_heap, val)
+                count_max[val] -= 1
+                if count_max[val] == 0:
+                    del count_max[val]
             elif len(min_heap) > len(max_heap):
-                heapq.heappush(max_heap, -heapq.heappop(min_heap))
+                val = heapq.heappop(min_heap)
+                heapq.heappush(max_heap, -val)
+                count_min[val] -= 1
+                if count_min[val] == 0:
+                    del count_min[val]
+
+        def remove_number(num):
+            if num <= get_median():
+                count_max[num] -= 1
+                if count_max[num] == 0:
+                    del count_max[num]
+            else:
+                count_min[num] -= 1
+                if count_min[num] == 0:
+                    del count_min[num]
 
         def get_median():
             if len(max_heap) == len(min_heap):
@@ -33,12 +55,6 @@ class Solution:
             if i >= k - 1:  # Window size is k
                 result.append(get_median())
                 # Remove the element that is sliding out of the window
-                num_to_remove = nums[i - (k - 1)]
-                if num_to_remove <= get_median():
-                    max_heap.remove(-num_to_remove)
-                    heapq.heapify(max_heap)
-                else:
-                    min_heap.remove(num_to_remove)
-                    heapq.heapify(min_heap)
+                remove_number(nums[i - (k - 1)])
 
         return result
