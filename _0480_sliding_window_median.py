@@ -43,3 +43,40 @@ import bisect
 
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
+        if not nums or k == 0:
+            return []
+
+        lower = []
+        upper = []
+        medians = []
+
+        for i in range(len(nums)):
+            # Add the current number to the appropriate half
+            if len(lower) == 0 or nums[i] <= -lower[0]:
+                bisect.insort(left, nums[i])
+            else:
+                bisect.insort(upper, nums[i])
+
+            # Balance the halves
+            while len(lower) > len(upper) + 1:
+                upper.append(-bisect.pop(0))
+            while len(upper) > len(lower):
+                lower.append(-bisect.pop(0))
+
+            # Calculate the median for the current window
+            if i >= k - 1:
+                medians.append(self.calculate_median(lower, upper))
+
+                # Remove the element that is sliding out of the window
+                if nums[i - k + 1] <= lower[0]:
+                    bisect.remove(lower, nums[i - k + 1])
+                else:
+                    bisect.remove(upper, nums[i - k + 1])
+
+        return medians
+
+    def calculate_median(self, lower: List[int], upper: List[int]) -> float:
+        if len(lower) > len(upper):
+            return float(lower[0])
+        else:
+            return (lower[0] - upper[0]) / 2.0
