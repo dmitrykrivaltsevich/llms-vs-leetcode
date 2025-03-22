@@ -39,6 +39,7 @@
 #
 
 from typing import List
+import bisect
 
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
@@ -64,9 +65,13 @@ class Solution:
 
         def remove(num):
             if num <= get_median():
-                lower.remove(-num)
+                index = bisect.bisect_left(lower, -num)
+                if index < len(lower) and lower[index] == -num:
+                    del lower[index]
             else:
-                upper.remove(num)
+                index = bisect.bisect_left(upper, num)
+                if index < len(upper) and upper[index] == num:
+                    del upper[index]
 
         def get_median():
             if k % 2 == 1:
