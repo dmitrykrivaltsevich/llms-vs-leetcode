@@ -50,23 +50,23 @@ class Solution:
         upper = []  # Sorted list for the upper half of the window
 
         def insert(num):
-            if not lower or num <= lower[-1]:
-                bisect.insort(lower, num)
+            if not lower or num <= -lower[-1]:
+                bisect.insort(lower, -num)
             else:
                 bisect.insort(upper, num)
 
             # Balance the lists
             while len(lower) > len(upper) + 1:
-                val = lower.pop()
+                val = -lower.pop()
                 upper.append(val)
             while len(upper) > len(lower):
                 val = upper.pop(0)
-                lower.append(val)
+                lower.append(-val)
 
         def remove(num):
             if num <= get_median():
-                index = bisect.bisect_left(lower, num)
-                if index < len(lower) and lower[index] == num:
+                index = bisect.bisect_left(lower, -num)
+                if index < len(lower) and lower[index] == -num:
                     del lower[index]
             else:
                 index = bisect.bisect_left(upper, num)
@@ -75,9 +75,9 @@ class Solution:
 
         def get_median():
             if k % 2 == 1:
-                return lower[-1]
+                return -lower[-1]
             else:
-                return (lower[-1] + upper[0]) / 2.0
+                return (-lower[-1] + upper[0]) / 2.0
 
         result = []
         for i in range(len(nums)):
