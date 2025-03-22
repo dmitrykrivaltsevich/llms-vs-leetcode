@@ -38,7 +38,7 @@
 # Try to solve using single sorted list as a window.
 # Make edits below this line only
 #
-import bisect
+from sortedcontainers import SortedList
 from typing import List
 
 class Solution:
@@ -54,25 +54,15 @@ class Solution:
             List[float]: A list containing the medians of each sliding window.
         """
 
-        def insert_and_maintain_sorted_list(sorted_list, value):
-            """Insert a value into the sorted list and maintain its order."""
-            bisect.insort(sorted_list, value)
-
-        def remove_from_sorted_list(sorted_list, value):
-            """Remove a value from the sorted list while maintaining its order."""
-            index = bisect.bisect_left(sorted_list, value)
-            if index < len(sorted_list) and sorted_list[index] == value:
-                del sorted_list[index]
-
         if not nums or k == 0:
             return []
 
         medians = []
-        window = []
+        window = SortedList()
 
         # Initialize the first window
         for i in range(k):
-            insert_and_maintain_sorted_list(window, nums[i])
+            window.add(nums[i])
 
         # Calculate the median of the first window
         if k % 2 == 1:
@@ -82,8 +72,8 @@ class Solution:
 
         # Slide the window across the array
         for i in range(k, len(nums)):
-            insert_and_maintain_sorted_list(window, nums[i])
-            remove_from_sorted_list(window, nums[i - k])
+            window.add(nums[i])
+            window.remove(nums[i - k])
 
             if k % 2 == 1:
                 medians.append(window[k // 2])
