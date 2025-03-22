@@ -35,50 +35,9 @@
 #
 # Make sure the implementation can handle nums size of 100000 and k=50000. The "heapq" solution is not performant enough for this case.
 # Do not use "heapq" -- it is not working for this problem. The "bisect" seems to be working, but doesn't pass all tests, be careful.
+# Try to solve using single sorted list as a window.
 # Make edits below this line only
 #
-
-from typing import List
-import bisect
-
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
-        if not nums or k == 0:
-            return []
-
-        lower = []
-        upper = []
-        medians = []
-
-        for i in range(len(nums)):
-            # Add the current number to the appropriate half
-            if len(lower) == 0 or nums[i] <= -lower[0]:
-                bisect.insort(lower, nums[i])
-            else:
-                bisect.insort(upper, nums[i])
-
-            # Balance the halves
-            while len(lower) > len(upper) + 1:
-                upper.append(-lower.pop(0))
-            while len(upper) > len(lower):
-                lower.append(-upper.pop(0))
-
-            # Calculate the median for the current window
-            if i >= k - 1:
-                medians.append(self.calculate_median(lower, upper))
-
-                # Remove the element that is sliding out of the window
-                if nums[i - k + 1] <= lower[0]:
-                    index = bisect.bisect_left(lower, nums[i - k + 1])
-                    del lower[index]
-                else:
-                    index = bisect.bisect_left(upper, nums[i - k + 1])
-                    del upper[index]
-
-        return medians
-
-    def calculate_median(self, lower: List[int], upper: List[int]) -> float:
-        if len(lower) > len(upper):
-            return float(lower[0])
-        else:
-            return (lower[0] - upper[0]) / 2.0
+#  first write python docstring
