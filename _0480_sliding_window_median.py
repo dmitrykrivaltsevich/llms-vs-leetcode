@@ -48,20 +48,33 @@ class Solution:
 
         lower = []  # Max-heap (inverted min-heap)
         upper = []  # Min-heap
+        count_lower = {}
+        count_upper = {}
         result = []
         for i in range(len(nums)):
-            if not lower or nums[i] <= -lower[0]:
-                heapq.heappush(lower, -nums[i])
+            num = nums[i]
+            if not lower or num <= -lower[0]:
+                heapq.heappush(lower, -num)
+                count_lower[num] = count_lower.get(num, 0) + 1
             else:
-                heapq.heappush(upper, nums[i])
+                heapq.heappush(upper, num)
+                count_upper[num] = count_upper.get(num, 0) + 1
 
             # Balance the heaps
             if len(lower) > len(upper) + 1:
                 val = -heapq.heappop(lower)
                 heapq.heappush(upper, val)
+                count_lower[val] -= 1
+                if count_lower[val] == 0:
+                    del count_lower[val]
+                count_upper[val] = count_upper.get(val, 0) + 1
             elif len(upper) > len(lower):
                 val = heapq.heappop(upper)
                 heapq.heappush(lower, -val)
+                count_upper[val] -= 1
+                if count_upper[val] == 0:
+                    del count_upper[val]
+                count_lower[-val] = count_lower.get(-val, 0) + 1
 
             # Add the median to the result if the window size is k
             if i >= k - 1:
@@ -71,11 +84,18 @@ class Solution:
                     result.append((-lower[0] + upper[0]) / 2.0)
 
                 # Remove the element that is sliding out of the window
-                if nums[i - (k - 1)] <= -lower[0]:
-                    lower.remove(-nums[i - (k - 1)])
+                old_num = nums[i - (k - 1)]
+                if old_num <= -lower[0]:
+                    count_lower[old_num] -= 1
+                    if count_lower[old_num] == 0:
+                        del count_lower[old_num]
+                    lower.remove(-old_num)
                     heapq.heapify(lower)
                 else:
-                    upper.remove(nums[i - (k - 1)])
+                    count_upper[old_num] -= 1
+                    if count_upper[old_num] == 0:
+                        del count_upper[old_num]
+                    upper.remove(old_num)
                     heapq.heapify(upper)
 
         return result
