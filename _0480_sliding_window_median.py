@@ -57,11 +57,11 @@ class Solution:
 
             # Balance the lists
             if len(lower) > len(upper) + 1:
-                val = -bisect.pop(lower)
-                bisect.insort(upper, val)
+                val = -lower.pop()
+                upper.append(val)
             elif len(upper) > len(lower):
-                val = bisect.pop(upper)
-                bisect.insort(lower, -val)
+                val = upper.pop()
+                lower.append(-val)
 
         def remove(num):
             if num <= get_median():
