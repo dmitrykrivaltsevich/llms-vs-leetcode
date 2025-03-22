@@ -48,50 +48,28 @@ class Solution:
 
         max_heap = []  # Max-heap for the smaller half of numbers
         min_heap = []  # Min-heap for the larger half of numbers
-        count_max = {}
-        count_min = {}
 
         def add_num(num):
             if len(max_heap) == 0 or num <= -max_heap[0]:
                 heapq.heappush(max_heap, -num)
-                count_max[num] = count_max.get(num, 0) + 1
             else:
                 heapq.heappush(min_heap, num)
-                count_min[num] = count_min.get(num, 0) + 1
 
             # Balance the heaps
             if len(max_heap) > len(min_heap) + 1:
                 val = -heapq.heappop(max_heap)
                 heapq.heappush(min_heap, val)
-                if val in count_max and count_max[val] > 0:
-                    count_max[val] -= 1
-                    if count_max[val] == 0:
-                        del count_max[val]
-                count_min[val] = count_min.get(val, 0) + 1
             elif len(min_heap) > len(max_heap):
                 val = heapq.heappop(min_heap)
                 heapq.heappush(max_heap, -val)
-                if val in count_min and count_min[val] > 0:
-                    count_min[val] -= 1
-                    if count_min[val] == 0:
-                        del count_min[val]
-                count_max[-val] = count_max.get(-val, 0) + 1
 
         def remove_num(num):
             if num <= get_median():
-                if num in count_max and count_max[num] > 0:
-                    count_max[num] -= 1
-                    if count_max[num] == 0:
-                        del count_max[num]
-                    max_heap.remove(-num)
-                    heapq.heapify(max_heap)
+                max_heap.remove(-num)
+                heapq.heapify(max_heap)
             else:
-                if num in count_min and count_min[num] > 0:
-                    count_min[num] -= 1
-                    if count_min[num] == 0:
-                        del count_min[num]
-                    min_heap.remove(num)
-                    heapq.heapify(min_heap)
+                min_heap.remove(num)
+                heapq.heapify(min_heap)
 
         def get_median():
             if k % 2 == 1:
