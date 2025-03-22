@@ -34,7 +34,7 @@
 # -2^31 <= nums[i] <= 2^31 - 1
 #
 # Make sure the implementation can handle nums size of 100000 and k=50000. The "heapq" solution is not performant enough for this case.
-#
+# Do not use "heapq" -- it is not working for this problem.
 # Make edits below this line only
 #
 
