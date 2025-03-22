@@ -38,5 +38,59 @@
 #
 class Solution:
     def countCompleteComponents(self, n: int, edges: List[List[int]]) -> int:
-# write docstring here
-# write solution here
+    def countCompleteComponents(self, n: int, edges: List[List[int]]) -> int:
+        """
+        Count the number of complete connected components in an undirected graph.
+
+        A connected component is a subgraph where there exists a path between any two vertices,
+        and no vertex shares an edge with a vertex outside the subgraph. A connected component
+        is said to be complete if there exists an edge between every pair of its vertices.
+
+        Args:
+            n (int): The number of vertices in the graph.
+            edges (List[List[int]]): A list of edges where each edge is represented as [ai, bi].
+
+        Returns:
+            int: The number of complete connected components.
+        """
+        from collections import defaultdict
+
+        # Build the graph as an adjacency list
+        graph = defaultdict(list)
+        for u, v in edges:
+            graph[u].append(v)
+            graph[v].append(u)
+
+        visited = [False] * n
+        complete_components_count = 0
+
+        def dfs(node):
+            stack = [node]
+            component = set()
+            while stack:
+                current = stack.pop()
+                if not visited[current]:
+                    visited[current] = True
+                    component.add(current)
+                    for neighbor in graph[current]:
+                        if not visited[neighbor]:
+                            stack.append(neighbor)
+            return component
+
+        def is_complete(component):
+            size = len(component)
+            for i in range(size):
+                for j in range(i + 1, size):
+                    u, v = list(component)[i], list(component)[j]
+                    if v not in graph[u]:
+                        return False
+            return True
+
+        # Find all connected components
+        for node in range(n):
+            if not visited[node]:
+                component = dfs(node)
+                if is_complete(component):
+                    complete_components_count += 1
+
+        return complete_components_count
