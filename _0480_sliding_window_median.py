@@ -23,9 +23,11 @@ class Solution:
 
         def remove(num):
             if num <= lower[-1]:
-                lower.remove(num)
+                if num in lower:
+                    lower.remove(num)
             else:
-                upper.remove(num)
+                if num in upper:
+                    upper.remove(num)
 
             # Balance the lists
             if len(lower) > len(upper) + 1:
