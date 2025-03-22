@@ -39,6 +39,7 @@
 #
 
 from typing import List
+import bisect
 
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
