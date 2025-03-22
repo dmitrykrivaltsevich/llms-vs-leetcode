@@ -39,50 +39,47 @@
 #
 
 from typing import List
-import heapq
 
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
         if not nums or k == 0:
             return []
 
-        max_heap = []  # Max-heap for the smaller half of numbers
-        min_heap = []  # Min-heap for the larger half of numbers
+        lower = []
+        upper = []
 
-        def add_num(num):
-            if len(max_heap) == 0 or num <= -max_heap[0]:
-                heapq.heappush(max_heap, -num)
+        def insert(num):
+            if not lower or num <= -lower[-1]:
+                bisect.insort(lower, -num)
             else:
-                heapq.heappush(min_heap, num)
+                bisect.insort(upper, num)
 
-            # Balance the heaps
-            if len(max_heap) > len(min_heap) + 1:
-                val = -heapq.heappop(max_heap)
-                heapq.heappush(min_heap, val)
-            elif len(min_heap) > len(max_heap):
-                val = heapq.heappop(min_heap)
-                heapq.heappush(max_heap, -val)
+            # Balance the lists
+            if len(lower) > len(upper) + 1:
+                val = -bisect.pop(lower)
+                bisect.insort(upper, val)
+            elif len(upper) > len(lower):
+                val = bisect.pop(upper)
+                bisect.insort(lower, -val)
 
-        def remove_num(num):
+        def remove(num):
             if num <= get_median():
-                max_heap.remove(-num)
-                heapq.heapify(max_heap)
+                lower.remove(-num)
             else:
-                min_heap.remove(num)
-                heapq.heapify(min_heap)
+                upper.remove(num)
 
         def get_median():
             if k % 2 == 1:
-                return -max_heap[0]
+                return -lower[-1]
             else:
-                return (-max_heap[0] + min_heap[0]) / 2
+                return (-lower[-1] + upper[0]) / 2
 
         result = []
         for i in range(len(nums)):
-            add_num(nums[i])
+            insert(nums[i])
             if i >= k - 1:
                 result.append(get_median())
                 # Remove the element that is sliding out of the window
-                remove_num(nums[i - (k - 1)])
+                remove(nums[i - (k - 1)])
 
         return result
