@@ -77,17 +77,19 @@ class Solution:
 
         def remove_num(num):
             if num <= get_median():
-                count_max[num] -= 1
-                if count_max[num] == 0:
-                    del count_max[num]
-                max_heap.remove(-num)
-                heapq.heapify(max_heap)
+                if num in count_max and count_max[num] > 0:
+                    count_max[num] -= 1
+                    if count_max[num] == 0:
+                        del count_max[num]
+                    max_heap.remove(-num)
+                    heapq.heapify(max_heap)
             else:
-                count_min[num] -= 1
-                if count_min[num] == 0:
-                    del count_min[num]
-                min_heap.remove(num)
-                heapq.heapify(min_heap)
+                if num in count_min and count_min[num] > 0:
+                    count_min[num] -= 1
+                    if count_min[num] == 0:
+                        del count_min[num]
+                    min_heap.remove(num)
+                    heapq.heapify(min_heap)
 
         def get_median():
             if k % 2 == 1:
