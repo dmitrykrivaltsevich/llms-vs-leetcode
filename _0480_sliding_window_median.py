@@ -12,6 +12,7 @@ class Solution:
         count_min = {}
 
         def add_number(num):
+            nonlocal max_heap, min_heap
             if len(max_heap) == 0 or num <= -max_heap[0]:
                 heapq.heappush(max_heap, -num)
                 count_max[num] = count_max.get(num, 0) + 1
@@ -34,6 +35,7 @@ class Solution:
                     del count_min[val]
 
         def remove_number(num):
+            nonlocal max_heap, min_heap
             if num <= get_median():
                 count_max[num] -= 1
                 if count_max[num] == 0:
@@ -66,6 +68,7 @@ class Solution:
                     del count_min[val]
 
         def get_median():
+            nonlocal max_heap, min_heap
             if len(max_heap) == len(min_heap):
                 return (-max_heap[0] + min_heap[0]) / 2
             else:
