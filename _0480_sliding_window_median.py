@@ -38,6 +38,7 @@
 # Try to solve using single sorted list as a window.
 # Make edits below this line only
 #
+import bisect
 from typing import List
 
 class Solution:
@@ -55,13 +56,13 @@ class Solution:
 
         def insert_and_maintain_sorted_list(sorted_list, value):
             """Insert a value into the sorted list and maintain its order."""
-            import bisect
             bisect.insort(sorted_list, value)
 
         def remove_from_sorted_list(sorted_list, value):
             """Remove a value from the sorted list while maintaining its order."""
-            index = sorted_list.index(value)
-            del sorted_list[index]
+            index = bisect.bisect_left(sorted_list, value)
+            if index < len(sorted_list) and sorted_list[index] == value:
+                del sorted_list[index]
 
         if not nums or k == 0:
             return []
