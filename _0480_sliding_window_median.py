@@ -81,13 +81,15 @@ class Solution:
 
         def remove_num(num):
             if num <= get_median():
-                max_count[-num] -= 1
-                if max_count[-num] == 0:
-                    del max_count[-num]
+                if -num in max_count and max_count[-num] > 0:
+                    max_count[-num] -= 1
+                    if max_count[-num] == 0:
+                        del max_count[-num]
             else:
-                min_count[num] -= 1
-                if min_count[num] == 0:
-                    del min_count[num]
+                if num in min_count and min_count[num] > 0:
+                    min_count[num] -= 1
+                    if min_count[num] == 0:
+                        del min_count[num]
 
         def get_median():
             if k % 2 == 1:
