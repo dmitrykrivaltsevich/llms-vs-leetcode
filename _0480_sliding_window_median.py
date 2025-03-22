@@ -58,11 +58,7 @@ class Solution:
             return []
 
         medians = []
-        window = SortedList()
-
-        # Initialize the first window
-        for i in range(k):
-            window.add(nums[i])
+        window = SortedList(nums[:k])
 
         # Calculate the median of the first window
         if k % 2 == 1:
