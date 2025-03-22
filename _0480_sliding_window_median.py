@@ -33,48 +33,9 @@
 # 1 <= k <= nums.length <= 10^5
 # -2^31 <= nums[i] <= 2^31 - 1
 #
-# Make sure the implementation can handle nums size of 100000 and k=50000.
-# Start from tests to ensure the functionality is working, you are not done until all tests pass.
+# Make sure the implementation can handle nums size of 100000 and k=50000. The "heapq" solution is not performant enough for this case.
 #
 # Make edits below this line only
 #
-
-from typing import List
-import heapq
-
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
-        if not nums or k == 0:
-            return []
-
-        max_heap = []  # Max-heap to store the smaller half of the numbers
-        min_heap = []  # Min-heap to store the larger half of the numbers
-
-        def add_num(num):
-            heapq.heappush(max_heap, -num)
-            heapq.heappush(min_heap, -heapq.heappop(max_heap))
-            if len(max_heap) < len(min_heap):
-                heapq.heappush(max_heap, -heapq.heappop(min_heap))
-
-        def remove_num(num):
-            if num <= -max_heap[0]:
-                heapq.heappush(max_heap, -num)
-                heapq.heappush(min_heap, -heapq.heappop(max_heap))
-            else:
-                heapq.heappush(min_heap, num)
-
-        def get_median():
-            if len(max_heap) == len(min_heap):
-                return (-max_heap[0] + min_heap[0]) / 2
-            else:
-                return -max_heap[0]
-
-        result = []
-        for i in range(len(nums)):
-            add_num(nums[i])
-            if i >= k - 1:
-                result.append(get_median())
-                remove_num(nums[i - k + 1])
-
-        return result
-
