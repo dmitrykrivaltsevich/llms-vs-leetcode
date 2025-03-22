@@ -7,7 +7,7 @@ class Solution:
         dp[0][0] = True
 
         # Handle patterns like a*, a*b*, a*b*c*
-        for j in range(2, n + 1):
+        for j in range(1, n + 1):
             if p[j - 1] == '*':
                 dp[0][j] = dp[0][j - 2]
 
