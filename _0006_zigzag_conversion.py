@@ -40,6 +40,16 @@
 #
 class Solution:
     def convert(self, s: str, numRows: int) -> str:
+        """
+        Convert a string into a zigzag pattern with the specified number of rows.
+
+        Args:
+            s (str): The input string to be converted.
+            numRows (int): The number of rows in the zigzag pattern.
+
+        Returns:
+            str: The converted string read line by line.
+        """
         if numRows == 1 or numRows >= len(s):
             return s
 
@@ -54,14 +64,3 @@ class Solution:
             current_row += 1 if going_down else -1
 
         return ''.join(rows)
-    def convert(self, s: str, numRows: int) -> str:
-        """
-        Convert a string into a zigzag pattern with the specified number of rows.
-
-        Args:
-            s (str): The input string to be converted.
-            numRows (int): The number of rows in the zigzag pattern.
-
-        Returns:
-            str: The converted string read line by line.
-        """
