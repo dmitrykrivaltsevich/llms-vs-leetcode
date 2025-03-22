@@ -23,29 +23,47 @@ class Solution:
             if len(max_heap) > len(min_heap) + 1:
                 val = -heapq.heappop(max_heap)
                 heapq.heappush(min_heap, val)
-                if count_max[val] == 1:
+                count_max[val] -= 1
+                if count_max[val] == 0:
                     del count_max[val]
-                else:
-                    count_max[val] -= 1
             elif len(min_heap) > len(max_heap):
                 val = heapq.heappop(min_heap)
                 heapq.heappush(max_heap, -val)
-                if count_min[val] == 1:
+                count_min[val] -= 1
+                if count_min[val] == 0:
                     del count_min[val]
-                else:
-                    count_min[val] -= 1
 
         def remove_number(num):
             if num <= get_median():
-                if count_max[num] == 1:
+                count_max[num] -= 1
+                if count_max[num] == 0:
                     del count_max[num]
                 else:
-                    count_max[num] -= 1
+                    # Re-heapify max_heap to remove the element
+                    max_heap = [-x for x in max_heap if x != -num]
+                    heapq.heapify(max_heap)
             else:
-                if count_min[num] == 1:
+                count_min[num] -= 1
+                if count_min[num] == 0:
                     del count_min[num]
                 else:
-                    count_min[num] -= 1
+                    # Re-heapify min_heap to remove the element
+                    min_heap = [x for x in min_heap if x != num]
+                    heapq.heapify(min_heap)
+
+            # Balance the heaps after removal
+            while len(max_heap) > len(min_heap) + 1:
+                val = -heapq.heappop(max_heap)
+                heapq.heappush(min_heap, val)
+                count_max[val] -= 1
+                if count_max[val] == 0:
+                    del count_max[val]
+            while len(min_heap) > len(max_heap):
+                val = heapq.heappop(min_heap)
+                heapq.heappush(max_heap, -val)
+                count_min[val] -= 1
+                if count_min[val] == 0:
+                    del count_min[val]
 
         def get_median():
             if len(max_heap) == len(min_heap):
