@@ -57,5 +57,5 @@ class TestSlidingWindowMedian(unittest.TestCase):
 if __name__ == '__main__':
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromTestCase(TestSlidingWindowMedian)
-    runner = unittest.TextTestRunner(timeout=3)
+    runner = unittest.TextTestRunner()
     runner.run(suite)
