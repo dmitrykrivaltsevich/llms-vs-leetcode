@@ -39,52 +39,43 @@
 #
 
 from typing import List
-import bisect
+import heapq
 
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
         if not nums or k == 0:
             return []
 
-        lower = []
-        upper = []
-
-        def insert(num):
-            if not lower or num <= -lower[-1]:
-                bisect.insort(lower, -num)
-            else:
-                bisect.insort(upper, num)
-
-            # Balance the lists
-            if len(lower) > len(upper) + 1:
-                val = -lower.pop()
-                upper.append(val)
-            elif len(upper) > len(lower):
-                val = upper.pop()
-                lower.append(-val)
-
-        def remove(num):
-            if num <= get_median():
-                index = bisect.bisect_left(lower, -num)
-                if index < len(lower) and lower[index] == -num:
-                    del lower[index]
-            else:
-                index = bisect.bisect_left(upper, num)
-                if index < len(upper) and upper[index] == num:
-                    del upper[index]
-
-        def get_median():
-            if k % 2 == 1:
-                return -lower[-1]
-            else:
-                return (-lower[-1] + upper[0]) / 2
-
+        lower = []  # Max-heap (inverted min-heap)
+        upper = []  # Min-heap
         result = []
         for i in range(len(nums)):
-            insert(nums[i])
+            if not lower or nums[i] <= -lower[0]:
+                heapq.heappush(lower, -nums[i])
+            else:
+                heapq.heappush(upper, nums[i])
+
+            # Balance the heaps
+            if len(lower) > len(upper) + 1:
+                val = -heapq.heappop(lower)
+                heapq.heappush(upper, val)
+            elif len(upper) > len(lower):
+                val = heapq.heappop(upper)
+                heapq.heappush(lower, -val)
+
+            # Add the median to the result if the window size is k
             if i >= k - 1:
-                result.append(get_median())
+                if k % 2 == 1:
+                    result.append(-lower[0])
+                else:
+                    result.append((-lower[0] + upper[0]) / 2.0)
+
                 # Remove the element that is sliding out of the window
-                remove(nums[i - (k - 1)])
+                if nums[i - (k - 1)] <= -lower[0]:
+                    lower.remove(-nums[i - (k - 1)])
+                    heapq.heapify(lower)
+                else:
+                    upper.remove(nums[i - (k - 1)])
+                    heapq.heapify(upper)
 
         return result
