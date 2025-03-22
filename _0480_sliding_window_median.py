@@ -59,9 +59,9 @@ class Solution:
 
             # Balance the halves
             while len(lower) > len(upper) + 1:
-                upper.append(-bisect.pop(0))
+                upper.append(-lower.pop(0))
             while len(upper) > len(lower):
-                lower.append(-bisect.pop(0))
+                lower.append(-upper.pop(0))
 
             # Calculate the median for the current window
             if i >= k - 1:
