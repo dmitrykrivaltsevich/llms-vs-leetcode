@@ -69,9 +69,11 @@ class Solution:
 
                 # Remove the element that is sliding out of the window
                 if nums[i - k + 1] <= lower[0]:
-                    bisect.remove(lower, nums[i - k + 1])
+                    index = bisect.bisect_left(lower, nums[i - k + 1])
+                    del lower[index]
                 else:
-                    bisect.remove(upper, nums[i - k + 1])
+                    index = bisect.bisect_left(upper, nums[i - k + 1])
+                    del upper[index]
 
         return medians
 
