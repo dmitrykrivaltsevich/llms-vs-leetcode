@@ -40,4 +40,28 @@
 #
 class Solution:
     def convert(self, s: str, numRows: int) -> str:
-# start by writing docstring
+        if numRows == 1 or numRows >= len(s):
+            return s
+
+        rows = [''] * numRows
+        current_row = 0
+        going_down = False
+
+        for char in s:
+            rows[current_row] += char
+            if current_row == 0 or current_row == numRows - 1:
+                going_down = not going_down
+            current_row += 1 if going_down else -1
+
+        return ''.join(rows)
+    def convert(self, s: str, numRows: int) -> str:
+        """
+        Convert a string into a zigzag pattern with the specified number of rows.
+
+        Args:
+            s (str): The input string to be converted.
+            numRows (int): The number of rows in the zigzag pattern.
+
+        Returns:
+            str: The converted string read line by line.
+        """
