@@ -23,25 +23,29 @@ class Solution:
             if len(max_heap) > len(min_heap) + 1:
                 val = -heapq.heappop(max_heap)
                 heapq.heappush(min_heap, val)
-                count_max[val] -= 1
-                if count_max[val] == 0:
+                if count_max[val] == 1:
                     del count_max[val]
+                else:
+                    count_max[val] -= 1
             elif len(min_heap) > len(max_heap):
                 val = heapq.heappop(min_heap)
                 heapq.heappush(max_heap, -val)
-                count_min[val] -= 1
-                if count_min[val] == 0:
+                if count_min[val] == 1:
                     del count_min[val]
+                else:
+                    count_min[val] -= 1
 
         def remove_number(num):
             if num <= get_median():
-                count_max[num] -= 1
-                if count_max[num] == 0:
+                if count_max[num] == 1:
                     del count_max[num]
+                else:
+                    count_max[num] -= 1
             else:
-                count_min[num] -= 1
-                if count_min[num] == 0:
+                if count_min[num] == 1:
                     del count_min[num]
+                else:
+                    count_min[num] -= 1
 
         def get_median():
             if len(max_heap) == len(min_heap):
