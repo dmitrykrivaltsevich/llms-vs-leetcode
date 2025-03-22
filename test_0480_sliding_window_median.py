@@ -36,7 +36,6 @@ class TestSlidingWindowMedian(unittest.TestCase):
         expected_output = [1.0, 2.0, 3.0, 4.0, 5.0]
         self.assertEqual(self.solution.medianSlidingWindow(nums, k), expected_output)
 
-    @unittest.timeout(3)
     def test_large_array(self):
         nums = list(range(100000))
         k = 50000
@@ -56,4 +55,16 @@ class TestSlidingWindowMedian(unittest.TestCase):
         self.assertEqual(self.solution.medianSlidingWindow(nums, k), expected_output)
 
 if __name__ == '__main__':
-    unittest.main()
+    import unittest_timeout
+    suite = unittest.TestSuite()
+    suite.addTest(TestSlidingWindowMedian('test_example_1'))
+    suite.addTest(TestSlidingWindowMedian('test_example_2'))
+    suite.addTest(TestSlidingWindowMedian('test_empty_array'))
+    suite.addTest(TestSlidingWindowMedian('test_k_zero'))
+    suite.addTest(TestSlidingWindowMedian('test_single_element_window'))
+    suite.addTest(unittest_timeout.TimeoutDecorator(3)(TestSlidingWindowMedian('test_large_array')))
+    suite.addTest(TestSlidingWindowMedian('test_negative_numbers'))
+    suite.addTest(TestSlidingWindowMedian('test_mixed_numbers'))
+
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
