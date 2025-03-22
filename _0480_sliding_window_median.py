@@ -66,14 +66,12 @@ class Solution:
                 count_max[val] -= 1
                 if count_max[val] == 0:
                     del count_max[val]
-                count_min[val] = count_min.get(val, 0) + 1
             elif len(min_heap) > len(max_heap):
                 val = heapq.heappop(min_heap)
                 heapq.heappush(max_heap, -val)
                 count_min[val] -= 1
                 if count_min[val] == 0:
                     del count_min[val]
-                count_max[-val] = count_max.get(-val, 0) + 1
 
         def remove_num(num):
             if num <= get_median():
