@@ -32,52 +32,11 @@
 #
 # 1 <= k <= nums.length <= 10^5
 # -2^31 <= nums[i] <= 2^31 - 1
-
-from typing import List
-import heapq
-
+#
+# Make sure the implementation can handle nums size of 100000 and k=50000.
+#
+# Make edits below this line only
+#
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
-        max_heap = []  # Max-heap to store the smaller half of the numbers
-        min_heap = []  # Min-heap to store the larger half of the numbers
-
-        def add_num(num):
-            if not max_heap or num <= -max_heap[0]:
-                heapq.heappush(max_heap, -num)
-            else:
-                heapq.heappush(min_heap, num)
-
-            # Balance the heaps
-            if len(max_heap) > len(min_heap) + 1:
-                heapq.heappush(min_heap, -heapq.heappop(max_heap))
-            elif len(min_heap) > len(max_heap):
-                heapq.heappush(max_heap, -heapq.heappop(min_heap))
-
-        def remove_num(num):
-            if num <= -max_heap[0]:
-                max_heap.remove(-num)
-                heapq.heapify(max_heap)
-            else:
-                min_heap.remove(num)
-                heapq.heapify(min_heap)
-
-            # Balance the heaps
-            if len(max_heap) > len(min_heap) + 1:
-                heapq.heappush(min_heap, -heapq.heappop(max_heap))
-            elif len(min_heap) > len(max_heap):
-                heapq.heappush(max_heap, -heapq.heappop(min_heap))
-
-        def get_median():
-            if k % 2 == 1:
-                return float(-max_heap[0])
-            else:
-                return (-max_heap[0] + min_heap[0]) / 2
-
-        medians = []
-        for i in range(len(nums)):
-            add_num(nums[i])
-            if i >= k - 1:
-                medians.append(get_median())
-                remove_num(nums[i - (k - 1)])
-
-        return medians
+# provide solution here
