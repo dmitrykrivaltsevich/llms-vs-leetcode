@@ -38,6 +38,55 @@
 # Try to solve using single sorted list as a window.
 # Make edits below this line only
 #
+from typing import List
+
 class Solution:
     def medianSlidingWindow(self, nums: List[int], k: int) -> List[float]:
-#  first write python docstring
+        """
+        Calculate the median for each sliding window of size k in the given array.
+
+        Args:
+            nums (List[int]): The input list of integers.
+            k (int): The size of the sliding window.
+
+        Returns:
+            List[float]: A list containing the medians of each sliding window.
+        """
+
+        def insert_and_maintain_sorted_list(sorted_list, value):
+            """Insert a value into the sorted list and maintain its order."""
+            import bisect
+            bisect.insort(sorted_list, value)
+
+        def remove_from_sorted_list(sorted_list, value):
+            """Remove a value from the sorted list while maintaining its order."""
+            index = sorted_list.index(value)
+            del sorted_list[index]
+
+        if not nums or k == 0:
+            return []
+
+        medians = []
+        window = []
+
+        # Initialize the first window
+        for i in range(k):
+            insert_and_maintain_sorted_list(window, nums[i])
+
+        # Calculate the median of the first window
+        if k % 2 == 1:
+            medians.append(window[k // 2])
+        else:
+            medians.append((window[k // 2 - 1] + window[k // 2]) / 2)
+
+        # Slide the window across the array
+        for i in range(k, len(nums)):
+            insert_and_maintain_sorted_list(window, nums[i])
+            remove_from_sorted_list(window, nums[i - k])
+
+            if k % 2 == 1:
+                medians.append(window[k // 2])
+            else:
+                medians.append((window[k // 2 - 1] + window[k // 2]) / 2)
+
+        return medians
