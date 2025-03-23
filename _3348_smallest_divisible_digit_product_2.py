@@ -49,4 +49,15 @@
 
 class Solution:
     def smallestNumber(self, num: str, t: int) -> str:
-        
+                # Helper function to calculate the product of digits in a number
+        def digit_product(n):
+            return prod(int(digit) for digit in n if digit != '0')
+
+        # Convert num to an integer for easier manipulation
+        current_num = int(num)
+
+        while True:
+            current_num += 1
+            str_current_num = str(current_num)
+            if '0' not in str_current_num and digit_product(str_current_num) % t == 0:
+                return str_current_num
