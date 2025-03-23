@@ -66,11 +66,28 @@ class Solution:
         def digit_product(n):
             return prod(int(digit) for digit in n if digit != '0')
 
+        # Helper function to generate the next possible number with zero-free digits
+        def next_zero_free_number(num):
+            num_list = list(map(int, num))
+            n = len(num_list)
+
+            for i in range(n - 1, -1, -1):
+                if num_list[i] != 9:
+                    num_list[i] += 1
+                    break
+                else:
+                    num_list[i] = 1
+
+            return ''.join(map(str, num_list))
+
+        # Helper function to calculate the product of digits in a number
+        def digit_product(n):
+            return prod(int(digit) for digit in n if digit != '0')
+
         # Convert num to an integer for easier manipulation
         current_num = int(num)
 
         while True:
-            current_num += 1
-            str_current_num = str(current_num)
-            if '0' not in str_current_num and digit_product(str_current_num) % t == 0:
+            str_current_num = next_zero_free_number(str(current_num))
+            if digit_product(str_current_num) % t == 0:
                 return str_current_num
