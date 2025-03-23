@@ -34,61 +34,11 @@
 # ai != bi
 # There are no repeated edges.
 #
-        from collections import defaultdict
-
-        # Build the graph as an adjacency list and a set of edges for quick lookup
-        edge_set = set((u, v) if u < v else (v, u) for u, v in edges)
-        graph = defaultdict(list)
-        for u, v in edges:
-            graph[u].append(v)
-            graph[v].append(u)
-
-        visited = [False] * n
-        complete_components_count = 0
-
-        def dfs(node):
-            stack = [node]
-            component = set()
-            while stack:
-                current = stack.pop()
-                if not visited[current]:
-                    component.add(current)
-                    visited[current] = True
-                    for neighbor in graph[current]:
-                        if not visited[neighbor]:
-                            stack.append(neighbor)
-            return component
-
-        def is_complete(component):
-            size = len(component)
-            for i in range(size):
-                for j in range(i + 1, size):
-                    u, v = list(component)[i], list(component)[j]
-                    if (u, v) not in edge_set and (v, u) not in edge_set:
-                        return False
-            return True
-
-        # Find all connected components using BFS
-        for node in range(n):
-            if not visited[node]:
-                queue = deque([node])
-                component = set()
-                while queue:
-                    current = queue.popleft()
-                    if not visited[current]:
-                        component.add(current)
-                        visited[current] = True
-                        for neighbor in graph[current]:
-                            if not visited[neighbor]:
-                                queue.append(neighbor)
-
-                if is_complete(component):
-                    complete_components_count += 1
-
-        return complete_components_count
+# Make edits below this line only
 #
 class Solution:
     def countCompleteComponents(self, n: int, edges: List[List[int]]) -> int:
+        """
         Count the number of complete connected components in an undirected graph.
 
         A connected component is a subgraph where there exists a path between any two vertices,
@@ -102,9 +52,9 @@ class Solution:
         Returns:
             int: The number of complete connected components.
         """
-        from collections import defaultdict, deque
+        from collections import defaultdict
 
-        # Build the graph as an adjacency list and a set of edges for quick lookup
+        # Build the graph as an adjacency list
         graph = defaultdict(list)
         for u, v in edges:
             graph[u].append(v)
@@ -121,7 +71,6 @@ class Solution:
                 if not visited[current]:
                     visited[current] = True
                     component.add(current)
-                    visited[current] = True
                     for neighbor in graph[current]:
                         if not visited[neighbor]:
                             stack.append(neighbor)
@@ -132,29 +81,15 @@ class Solution:
             for i in range(size):
                 for j in range(i + 1, size):
                     u, v = list(component)[i], list(component)[j]
-                    if (u, v) not in edge_set and (v, u) not in edge_set:
+                    if v not in graph[u]:
                         return False
             return True
 
-        # Build the graph as an adjacency list and a set of edges for quick lookup
-        edge_set = set((u, v) if u < v else (v, u) for u, v in edges)
-        # Find all connected components using BFS
+        # Find all connected components
         for node in range(n):
             if not visited[node]:
-                queue = deque([node])
-                component = set()
-                while queue:
-                    current = queue.popleft()
-                    if not visited[current]:
-                        component.add(current)
-                        visited[current] = True
-                        for neighbor in graph[current]:
-                            if not visited[neighbor]:
-                                queue.append(neighbor)
-
+                component = dfs(node)
                 if is_complete(component):
                     complete_components_count += 1
 
         return complete_components_count
-
-    def countCompleteComponents(self, n: int, edges: List[List[int]]) -> int:
