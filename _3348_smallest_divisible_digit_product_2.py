@@ -84,10 +84,42 @@ class Solution:
         def digit_product(n):
             return prod(int(digit) for digit in n if digit != '0')
 
-        # Convert num to an integer for easier manipulation
-        current_num = int(num)
+        from itertools import permutations
 
-        while True:
-            str_current_num = next_zero_free_number(str(current_num))
-            if digit_product(str_current_num) % t == 0:
-                return str_current_num
+        def has_large_factor(t):
+            """Check if t has any factor greater than 9."""
+            for i in range(2, int(t**0.5) + 1):
+                if t % i == 0:
+                    if i > 9 or t // i > 9:
+                        return True
+            return False
+
+        def generate_factors(t):
+            """Generate all factors of t that are less than or equal to 9."""
+            factors = set()
+            for i in range(1, int(t**0.5) + 1):
+                if t % i == 0:
+                    if i <= 9:
+                        factors.add(i)
+                    if t // i <= 9 and t // i != i:
+                        factors.add(t // i)
+            return sorted(factors)
+
+        def smallest_number_with_factors(num, factors):
+            """Find the smallest number greater than or equal to num that contains all factors."""
+            num = int(num)
+            for perm in permutations(factors):
+                candidate = ''.join(map(str, perm))
+                if int(candidate) >= num:
+                    return candidate
+            return "-1"
+
+        # Check if t has any factor greater than 9
+            if has_large_factor(t):
+                return "-1"
+
+        # Generate all factors of t that are less than or equal to 9
+        factors = generate_factors(t)
+        # Find the smallest number greater than or equal to num that contains all factors
+        return smallest_number_with_factors(num, factors)
+        # Remove unused helper functions
