@@ -83,7 +83,6 @@ class Solution:
             uf.union(u, v)
 
         graph = defaultdict(list)
-        graph = defaultdict(list)
         for u, v in edges:
             graph[u].append(v)
             graph[v].append(u)
