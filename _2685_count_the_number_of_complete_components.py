@@ -35,7 +35,7 @@
 # There are no repeated edges.
 #
 # Make edits below this line only
-#
+
 class Solution:
     def countCompleteComponents(self, n: int, edges: List[List[int]]) -> int:
         """
