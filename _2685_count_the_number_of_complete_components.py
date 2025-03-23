@@ -34,7 +34,33 @@
 # ai != bi
 # There are no repeated edges.
 #
-# Make edits below this line only
+from collections import defaultdict
+from typing import List
+
+class UnionFind:
+    def __init__(self, size):
+        self.parent = list(range(size))
+        self.rank = [1] * size
+
+    def find(self, p):
+        if self.parent[p] != p:
+            self.parent[p] = self.find(self.parent[p])
+        return self.parent[p]
+
+    def union(self, p, q):
+        rootP = self.find(p)
+        rootQ = self.find(q)
+        if rootP != rootQ:
+            if self.rank[rootP] > self.rank[rootQ]:
+                self.parent[rootQ] = rootP
+            elif self.rank[rootP] < self.rank[rootQ]:
+                self.parent[rootP] = rootQ
+            else:
+                self.parent[rootQ] = rootP
+                self.rank[rootP] += 1
+
+    def connected(self, p, q):
+        return self.find(p) == self.find(q)
 
 class Solution:
     def countCompleteComponents(self, n: int, edges: List[List[int]]) -> int:
@@ -52,9 +78,11 @@ class Solution:
         Returns:
             int: The number of complete connected components.
         """
-        from collections import defaultdict
+        uf = UnionFind(n)
+        for u, v in edges:
+            uf.union(u, v)
 
-        # Build the graph as an adjacency list
+        graph = defaultdict(list)
         graph = defaultdict(list)
         for u, v in edges:
             graph[u].append(v)
@@ -81,7 +109,7 @@ class Solution:
             for i in range(size):
                 for j in range(i + 1, size):
                     u, v = list(component)[i], list(component)[j]
-                    if v not in graph[u]:
+                    if not uf.connected(u, v):
                         return False
             return True
 
