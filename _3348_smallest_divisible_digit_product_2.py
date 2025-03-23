@@ -50,19 +50,19 @@ from math import prod
 # Make edits below this line only. First write docstring, then implementation.
 
 class Solution:
-    """
-    Find the smallest zero-free number greater than or equal to a given number such that
-    the product of its digits is divisible by `t`.
-
-    Args:
-        num (str): The input number as a string.
-        t (int): The target divisor.
-
-    Returns:
-        str: The smallest zero-free number with the required properties, or "-1" if no such number exists.
-    """
     def smallestNumber(self, num: str, t: int) -> str:
-                # Helper function to calculate the product of digits in a number
+        """
+        Find the smallest zero-free number greater than or equal to a given number such that
+        the product of its digits is divisible by `t`.
+
+        Args:
+            num (str): The input number as a string.
+            t (int): The target divisor.
+
+        Returns:
+            str: The smallest zero-free number with the required properties, or "-1" if no such number exists.
+        """
+        # Helper function to calculate the product of digits in a number
         def digit_product(n):
             return prod(int(digit) for digit in n if digit != '0')
 
