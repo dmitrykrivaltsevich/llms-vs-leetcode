@@ -105,10 +105,11 @@ class Solution:
 
         def is_complete(component):
             size = len(component)
+            component_list = list(component)
             for i in range(size):
                 for j in range(i + 1, size):
-                    u, v = list(component)[i], list(component)[j]
-                    if not uf.connected(u, v):
+                    u, v = component_list[i], component_list[j]
+                    if v not in graph[u]:
                         return False
             return True
 
