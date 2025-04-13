@@ -101,6 +101,7 @@ class Solution:
         if factors_tuple in memo: return memo[factors_tuple]
 
         best_digit_list = None # Stores the best list found so far [d] + recursive_result
+        best_digit_list_sorted = None # Optimization: Store the sorted version of best_digit_list
 
         # Try adding digit d (9 down to 2) to the solution
         for d in range(9, 1, -1):
@@ -132,24 +133,27 @@ class Solution:
             if res is not None:
                 current_list = [d] + res # Prepend the current digit 'd'
 
-                # Compare this solution (current_list) with the best found so far (best_digit_list)
+                # Compare this solution (current_list) with the best found so far
                 # Prioritize minimum length, then lexicographically smallest *sorted* list
-                current_list_sorted = sorted(current_list) # Sort once for comparison
 
                 if best_digit_list is None:
-                    best_digit_list = current_list # First solution found
+                    # First valid solution found
+                    best_digit_list = current_list
+                    best_digit_list_sorted = sorted(best_digit_list) # Store sorted version
                 else:
                     # Compare lengths first
                     if len(current_list) < len(best_digit_list):
+                        # Shorter solution is always better
                         best_digit_list = current_list
+                        best_digit_list_sorted = sorted(best_digit_list) # Store sorted version
                     elif len(current_list) == len(best_digit_list):
                         # If lengths are equal, compare lexicographically using sorted lists
-                        # Sort best_digit_list here for comparison
-                        if current_list_sorted < sorted(best_digit_list):
+                        current_list_sorted = sorted(current_list) # Sort current list once
+                        # Compare against the stored sorted version of the best list
+                        if current_list_sorted < best_digit_list_sorted:
                             best_digit_list = current_list # Update best solution
+                            best_digit_list_sorted = current_list_sorted # Update stored sorted version
 
-        # Memoize the result for this factor state and return it
-        memo[factors_tuple] = best_digit_list
         # Memoize and return the best list found (represents the combination of digits, not necessarily sorted)
         memo[factors_tuple] = best_digit_list
         return best_digit_list
