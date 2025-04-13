@@ -134,24 +134,30 @@ class Solution:
 
                 # Compare this solution (current_list) with the best found so far (best_digit_list)
                 # Prioritize minimum length, then lexicographically smallest *sorted* list
-                current_list_sorted_str = "".join(map(str, sorted(current_list)))
-                best_digit_list_sorted_str = ""
-                if best_digit_list is not None:
-                    best_digit_list_sorted_str = "".join(map(str, sorted(best_digit_list)))
+                current_list_sorted = sorted(current_list) # Sort once for comparison
 
-                if best_digit_list is None or \
-                   len(current_list) < len(best_digit_list) or \
-                   (len(current_list) == len(best_digit_list) and current_list_sorted_str < best_digit_list_sorted_str):
-                     best_digit_list = current_list # Update best solution
+                if best_digit_list is None:
+                    best_digit_list = current_list # First solution found
+                else:
+                    # Compare lengths first
+                    if len(current_list) < len(best_digit_list):
+                        best_digit_list = current_list
+                    elif len(current_list) == len(best_digit_list):
+                        # If lengths are equal, compare lexicographically using sorted lists
+                        # Sort best_digit_list here for comparison
+                        if current_list_sorted < sorted(best_digit_list):
+                            best_digit_list = current_list # Update best solution
 
         # Memoize the result for this factor state and return it
         memo[factors_tuple] = best_digit_list
+        # Memoize and return the best list found (represents the combination of digits, not necessarily sorted)
+        memo[factors_tuple] = best_digit_list
         return best_digit_list
 
-    def get_min_suffix(self, needed_factors: dict, length: int, memo_minimal_digits: dict):
+    def get_min_suffix_parts(self, needed_factors: dict, length: int, memo_minimal_digits: dict):
         """
-        Constructs the smallest suffix string of a given length that satisfies
-        needed_factors, using '1's and the minimal factor digits.
+        Finds the minimal factor digits and padding '1's count for a suffix.
+        Returns (min_digits_list, num_ones) or None if impossible or length constraint violated.
         """
         # Find the minimal set of digits (2-9) required for the factors
         min_digits_list = self.get_minimal_factor_digits(needed_factors, memo_minimal_digits)
@@ -166,10 +172,8 @@ class Solution:
         # Calculate how many '1's are needed for padding
         num_ones = length - len(min_digits_list)
 
-        # Construct the suffix: '1's followed by the sorted minimal digits
-        # Sorting ensures the smallest numerical value for the suffix
-        suffix_list = [1] * num_ones + sorted(min_digits_list)
-        return "".join(map(str, suffix_list))
+        # Return the parts needed to construct the smallest suffix later
+        return (min_digits_list, num_ones)
 
 
     def smallestNumber(self, num: str, t: int) -> str:
@@ -242,20 +246,19 @@ class Solution:
                 # Calculate the length of the suffix needed
                 remaining_len = n - len(current_prefix_digits)
 
-                # Find the smallest possible suffix satisfying needs
-                suffix = self.get_min_suffix(needed_factors, remaining_len, memo_minimal_digits)
+                # Find the parts needed for the smallest possible suffix
+                suffix_parts = self.get_min_suffix_parts(needed_factors, remaining_len, memo_minimal_digits)
 
-                # If a valid suffix was found...
-                if suffix is not None:
-                    candidate = current_prefix_digits + suffix
-                    # This candidate has length n, is > num, and satisfies factors.
-                    # Since we iterate `i` downwards and `d` upwards, the first
-                    # candidate found this way is the smallest possible number
-                    # of length n that is strictly greater than num.
-                    min_found_num = candidate
-                    break # Break inner loop (d)
+                # If valid parts were found...
+                if suffix_parts is not None:
+                    min_digits_list, num_ones = suffix_parts
+                    # Construct the suffix string ONLY now
+                    suffix_str = '1' * num_ones + "".join(map(str, sorted(min_digits_list)))
+                    # This candidate is the smallest number > num of length n.
+                    min_found_num = current_prefix_digits + suffix_str
+                    break # Break inner loop (d) - Found the best candidate > num
             if min_found_num is not None:
-                 break # Break outer loop (i) - we found the smallest length-n number > num
+                 break # Break outer loop (i) - Found the best candidate > num
 
         # --- Check if `num` itself is a valid solution ---
         num_satisfies = False
