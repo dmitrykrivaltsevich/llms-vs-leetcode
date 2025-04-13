@@ -241,51 +241,50 @@ class Solution:
                 candidate_num = num
 
         # --- Candidate 2: Find the smallest number x > num of length n ---
-        # Iterate from right-to-left (i) and smallest digit change first (d)
-        # to find the overall smallest candidate efficiently.
+        # Use optimized left-to-right approach with incremental factor calculation.
         candidate_n_greater = None
-        # Iterate position from right to left
-        for i in range(n - 1, -1, -1):
-            prefix_part = num[:i]
+        current_prefix_factors = {p: 0 for p in target_factors} # Start with zero factors
+        found_n_greater = False # Flag to break outer loop once candidate is found
+        for i in range(n):
             original_digit = int(num[i])
+            prefix_so_far = num[:i] # Prefix before index i
 
-            # Calculate factors for the fixed prefix num[:i] once per i
-            # This is potentially inefficient but correct. Optimization TBD if needed.
-            prefix_factors = self.get_factors_from_digits(prefix_part)
+            # Try digits `d` greater than the original digit at position `i`
+            # Start from max(1, ...) to handle original_digit == 0 correctly
+            for d in range(max(1, original_digit + 1), 10):
+                # Calculate factors including the new digit `d` incrementally
+                factors_after_prefix_plus_d = self.add_factors(current_prefix_factors, self.DIGIT_FACTORS[d])
+                # Calculate factors still needed for the suffix
+                needed_suffix_factors = self.subtract_factors(target_factors, factors_after_prefix_plus_d)
+                # Calculate the length of the suffix needed
+                remaining_len = n - 1 - i # Length of suffix is n - (i+1)
 
-            # Try digits d > original_digit at position i
-            for d in range(original_digit + 1, 10):
-                 # Skip 0 (already handled by range start)
+                # Find the parts needed for the smallest possible suffix
+                suffix_parts = self.get_min_suffix_parts(needed_suffix_factors, remaining_len, memo_minimal_digits)
 
-                 current_prefix_str = prefix_part + str(d)
-                 # Ensure the prefix built so far is zero-free (should be true if d!=0)
-                 if '0' in current_prefix_str:
-                     continue
+                # If a valid suffix can be constructed...
+                if suffix_parts is not None:
+                    min_digits_list, num_ones = suffix_parts
+                    # Construct the suffix string
+                    suffix_str = '1' * num_ones + "".join(map(str, sorted(min_digits_list)))
+                    # Combine prefix, new digit d, and suffix. This is the smallest result > num of length n.
+                    candidate_n_greater = prefix_so_far + str(d) + suffix_str
+                    found_n_greater = True # Set flag
+                    break # Break inner d loop (found the smallest d for this i)
 
-                 # Calculate factors provided by this new prefix
-                 current_prefix_factors = self.add_factors(prefix_factors, self.DIGIT_FACTORS[d])
+            if found_n_greater:
+                break # Break outer i loop (found the overall smallest candidate_n_greater)
 
-                 # Calculate factors still needed for the suffix
-                 needed_suffix_factors = self.subtract_factors(target_factors, current_prefix_factors)
-                 remaining_len = n - len(current_prefix_str) # n - (i + 1)
+            # If we couldn't replace digit `i` with a larger one, we must use the original digit
+            # Check if the original digit is 0 - if so, we can't form a zero-free number matching num's prefix
+            if original_digit == 0:
+                # Cannot continue matching num's prefix. Any valid solution must have started
+                # with a different prefix found in the loop above. If we reach here,
+                # no solution of length n >= num exists starting with num's prefix up to i-1.
+                break # Exit the loop for i
 
-                 # Find the parts needed for the smallest possible suffix
-                 suffix_parts = self.get_min_suffix_parts(needed_suffix_factors, remaining_len, memo_minimal_digits)
-
-                 # If a valid suffix can be constructed...
-                 if suffix_parts is not None:
-                     min_digits_list, num_ones = suffix_parts
-                     # Construct the suffix string
-                     suffix_str = '1' * num_ones + "".join(map(str, sorted(min_digits_list)))
-                     # Construct the full candidate number
-                     current_candidate = current_prefix_str + suffix_str
-
-                     # If this is the first candidate found, or it's smaller than the current best
-                     # Keep track of the minimum valid candidate found so far.
-                     if candidate_n_greater is None or current_candidate < candidate_n_greater:
-                          candidate_n_greater = current_candidate
-                     # Continue checking other 'd' for this 'i' and other 'i's
-                     # as a change further left might yield an even smaller result.
+            # Update current_prefix_factors by adding factors of the original digit
+            current_prefix_factors = self.add_factors(current_prefix_factors, self.DIGIT_FACTORS[original_digit])
 
         # --- Candidate 3: Find the smallest number of length n+1 or longer ---
         candidate_longer = None
