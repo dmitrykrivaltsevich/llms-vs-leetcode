@@ -68,6 +68,13 @@ class Solution:
         # Return only factors with count > 0
         return {p: c for p, c in factors.items() if c > 0}
 
+    def add_factors(self, factors1: dict, factors2: dict):
+        """Adds the counts of factors from two dictionaries."""
+        result = factors1.copy()
+        for p, count in factors2.items():
+            result[p] = result.get(p, 0) + count
+        return result
+
     def get_factors_from_digits(self, digits_str: str):
         """Calculates the combined prime factors (2,3,5,7) from a string of digits."""
         total_factors = {2: 0, 3: 0, 5: 0, 7: 0}
@@ -222,68 +229,66 @@ class Solution:
         if target_factors is None:
             return "-1"
 
-        min_found_num = None # Stores the best candidate found so far
         memo_minimal_digits = {} # Memoization cache for get_minimal_factor_digits
+        current_prefix_factors = {2: 0, 3: 0, 5: 0, 7: 0} # Factors accumulated by num[:i]
 
         # --- Try to find a solution of length n ---
-
-        # Iterate through positions `i` from right-to-left (n-1 down to 0)
-        # Try changing the digit at `num[i]` to something larger
-        for i in range(n - 1, -1, -1):
-            prefix = num[:i]
+        # Iterate left-to-right to find the first position `i` to change
+        for i in range(n):
             original_digit = int(num[i])
+            prefix_so_far = num[:i] # Prefix before index i
 
             # Try digits `d` greater than the original digit at position `i`
-            for d in range(original_digit + 1, 10): # d is 1-9
-                # Skip digit 0
-                if d == 0: continue
-
-                current_prefix_digits = prefix + str(d)
-                # Ensure the prefix built so far is zero-free
-                if '0' in current_prefix_digits:
-                    continue # Skip if the prefix contains '0'
-
-                # Calculate factors provided by this new prefix
-                prefix_factors = self.get_factors_from_digits(current_prefix_digits)
+            # Start from max(1, ...) to handle original_digit == 0 correctly
+            for d in range(max(1, original_digit + 1), 10):
+                # Calculate factors including the new digit `d`
+                factors_after_prefix_plus_d = self.add_factors(current_prefix_factors, self.DIGIT_FACTORS[d])
                 # Calculate factors still needed for the suffix
-                needed_factors = self.subtract_factors(target_factors, prefix_factors)
+                needed_suffix_factors = self.subtract_factors(target_factors, factors_after_prefix_plus_d)
                 # Calculate the length of the suffix needed
-                remaining_len = n - len(current_prefix_digits)
+                remaining_len = n - 1 - i
 
                 # Find the parts needed for the smallest possible suffix
-                suffix_parts = self.get_min_suffix_parts(needed_factors, remaining_len, memo_minimal_digits)
+                suffix_parts = self.get_min_suffix_parts(needed_suffix_factors, remaining_len, memo_minimal_digits)
 
-                # If valid parts were found...
+                # If a valid suffix can be constructed...
                 if suffix_parts is not None:
                     min_digits_list, num_ones = suffix_parts
-                    # Construct the suffix string ONLY now
+                    # Construct the suffix string
                     suffix_str = '1' * num_ones + "".join(map(str, sorted(min_digits_list)))
-                    # This candidate is the smallest number > num of length n.
-                    min_found_num = current_prefix_digits + suffix_str
-                    break # Break inner loop (d) - Found the best candidate > num
-            if min_found_num is not None:
-                 break # Break outer loop (i) - Found the best candidate > num
+                    # Combine prefix, new digit d, and suffix. This is the smallest result > num.
+                    return prefix_so_far + str(d) + suffix_str
 
-        # --- Check if `num` itself is a valid solution ---
-        num_satisfies = False
-        if '0' not in num:
-            num_factors = self.get_factors_from_digits(num)
-            # Check if `num`'s factors cover the target factors
-            if not self.subtract_factors(target_factors, num_factors): # True if needed is empty
-                num_satisfies = True
+            # If we couldn't replace digit `i` with a larger one, we must use the original digit
+            # Check if the original digit is 0 - if so, we can't form a zero-free number matching num's prefix
+            if original_digit == 0:
+                # Cannot continue matching num's prefix. Any valid solution must have started
+                # with a different prefix found in the loop above. If we reach here,
+                # no solution of length n >= num exists.
+                break # Exit the loop for i
 
-        # Determine the result based on whether `num` satisfies and if a larger candidate was found
-        if num_satisfies:
-            # If num works and either no larger candidate was found, OR num is smaller than the larger candidate found
-            if min_found_num is None or num < min_found_num:
-                 return num # num is the smallest valid solution
-            else:
-                 return min_found_num # The larger candidate found was actually the smallest
-        elif min_found_num is not None: # num doesn't satisfy, but a larger candidate of length n was found
-             return min_found_num
+            # Update current_prefix_factors by adding factors of the original digit
+            current_prefix_factors = self.add_factors(current_prefix_factors, self.DIGIT_FACTORS[original_digit])
 
-        # --- If no solution of length n works, try length n+1 (or longer) ---
-        memo_minimal_digits.clear() # Clear cache for the next independent call
+            # If this is the last digit (i == n-1) and we haven't returned/broken yet:
+            # This means we processed the entire `num` string without finding a larger valid number.
+            # Now, check if `num` itself is the answer.
+            if i == n - 1:
+                 # We already checked original_digit != 0 implicitly by not breaking
+                 # Check if the accumulated factors satisfy the target
+                 if not self.subtract_factors(target_factors, current_prefix_factors):
+                     return num # num is zero-free and satisfies the factors
+
+        # --- If no solution of length n >= num was found by the loop ---
+        # This happens if:
+        # 1. The loop broke because num[i] == 0.
+        # 2. The loop finished, but num itself didn't satisfy the factors.
+        # 3. The loop finished, num satisfied factors, but we already returned it. (Handled)
+
+        # --- Try length n+1 (or longer) ---
+        # We need the minimal digits for the *entire* target_factors, starting from scratch.
+        # Clear memo cache? Might not be necessary if states don't overlap badly, but safer.
+        memo_minimal_digits.clear()
         # Find the absolute minimal set of digits (2-9) for target_factors
         min_factor_digits_list = self.get_minimal_factor_digits(target_factors, memo_minimal_digits)
 
