@@ -17,6 +17,12 @@
 # Output: "-1"
 # Explanation:
 # No number greater than 11111 has the product of its digits divisible by 26.
+#
+# Example:
+# Input num = "4093", t = 180
+# Wrong answer: "4095"
+# Expected output: "4159"
+#
 # Constraints:
 # 2 <= num.length <= 2 * 105
 # num consists only of digits in the range ['0', '9'].
