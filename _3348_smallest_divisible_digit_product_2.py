@@ -227,8 +227,13 @@ class Solution:
 
             # Try digits `d` greater than the original digit at position `i`
             for d in range(original_digit + 1, 10): # d is 1-9
+                # Skip digit 0
+                if d == 0: continue
+
                 current_prefix_digits = prefix + str(d)
-                # This prefix is guaranteed zero-free up to this point if num was
+                # Ensure the prefix built so far is zero-free
+                if '0' in current_prefix_digits:
+                    continue # Skip if the prefix contains '0'
 
                 # Calculate factors provided by this new prefix
                 prefix_factors = self.get_factors_from_digits(current_prefix_digits)
