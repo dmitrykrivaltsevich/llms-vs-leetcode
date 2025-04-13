@@ -242,9 +242,10 @@ class Solution:
 
         # --- Candidate 2: Find the smallest number x > num of length n ---
         # Use optimized left-to-right approach with incremental factor calculation.
+        # Iterate through all possibilities to find the minimum.
         candidate_n_greater = None
         current_prefix_factors = {p: 0 for p in target_factors} # Start with zero factors
-        found_n_greater = False # Flag to break outer loop once candidate is found
+        # removed found_n_greater flag
         for i in range(n):
             original_digit = int(num[i])
             prefix_so_far = num[:i] # Prefix before index i
@@ -267,16 +268,17 @@ class Solution:
                     min_digits_list, num_ones = suffix_parts
                     # Construct the suffix string
                     suffix_str = '1' * num_ones + "".join(map(str, sorted(min_digits_list)))
-                    # Combine prefix, new digit d, and suffix. This is the smallest result > num of length n.
-                    candidate_n_greater = prefix_so_far + str(d) + suffix_str
-                    found_n_greater = True # Set flag
-                    break # Break inner d loop (found the smallest d for this i)
+                    # Combine prefix, new digit d, and suffix.
+                    current_candidate = prefix_so_far + str(d) + suffix_str
+                    # Keep track of the minimum valid candidate found so far.
+                    if candidate_n_greater is None or current_candidate < candidate_n_greater:
+                         candidate_n_greater = current_candidate
+                    # Continue checking other 'd' for this 'i' and other 'i's.
 
-            if found_n_greater:
-                break # Break outer i loop (found the overall smallest candidate_n_greater)
+            # Removed the found_n_greater flag check and break
 
-            # If we couldn't replace digit `i` with a larger one, we must use the original digit
-            # Check if the original digit is 0 - if so, we can't form a zero-free number matching num's prefix
+            # If we couldn't replace digit `i` with a larger one, we must use the original digit.
+            # Check if the original digit is 0 - if so, we can't form a zero-free number matching num's prefix.
             if original_digit == 0:
                 # Cannot continue matching num's prefix. Any valid solution must have started
                 # with a different prefix found in the loop above. If we reach here,
