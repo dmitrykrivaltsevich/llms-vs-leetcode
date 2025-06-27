@@ -28,7 +28,7 @@ Here is a list of the LeetCode problems that have been solved so far:
 To run any of the solutions, you can execute the corresponding test file. For example, to test the "Two Sum" solution, run the following command:
 
 ```bash
-python _test_0001_two_sum.py
+python3 _test_0001_two_sum.py
 ```
 
 ## Contributing
