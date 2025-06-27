@@ -1,243 +1,118 @@
-# Problem:
-# You are given a string num which represents a positive integer, and an integer t.
-# A number is called zero-free if none of its digits are 0.
-# Return a string representing the smallest zero-free number greater than or equal to num such that the product of its digits is divisible by t. If no such number exists, return "-1".
-# Example 1:
-# Input: num = "1234", t = 256
-# Output: "1488"
-# Explanation:
-# The smallest zero-free number that is greater than 1234 and has the product of its digits divisible by 256 is 1488, with the product of its digits equal to 256.
-# Example 2:
-# Input: num = "12355", t = 50
-# Output: "12355"
-# Explanation:
-# 12355 is already zero-free and has the product of its digits divisible by 50, with the product of its digits equal to 150.
-# Example 3:
-# Input: num = "11111", t = 26
-# Output: "-1"
-# Explanation:
-# No number greater than 11111 has the product of its digits divisible by 26.
-#
-# Example:
-# Input num = "4093", t = 180
-# Wrong answer: "4095"
-# Expected output: "4159"
-#
-# Constraints:
-# 2 <= num.length <= 2 * 10^5 (important! many test cases use lenghty numbers, make sure solution is fast)
-# num consists only of digits in the range ['0', '9'].
-# num does not contain leading zeros.
-# 1 <= t <= 10^14
-#
 import math
-# from functools import cache # Using dictionary memoization instead
-from collections import Counter
+import sys
+from collections import Counter, deque
+from functools import lru_cache
 
 class Solution:
-
     def get_prime_factorization(self, n):
-        """Computes the prime factorization of n."""
         factors = Counter()
         d = 2
         temp_n = n
-        # Optimization: only check factors up to sqrt(n)
         while d * d <= temp_n:
-            while temp_n % d == 0:
-                factors[d] += 1
-                temp_n //= d
-            # Optimization: check 2 then only odd numbers
-            d = d + 1 if d == 2 else d + 2
+            if temp_n % d == 0:
+                while temp_n % d == 0:
+                    factors[d] += 1
+                    temp_n //= d
+            d += 1
         if temp_n > 1:
             factors[temp_n] += 1
         return factors
 
     def smallestNumber(self, num: str, t: int) -> str:
-        _gcd = math.gcd # Local alias for performance
-
-        # --- Handle t = 1 separately ---
         if t == 1:
-            n = len(num)
-            digits = [int(d) for d in num]
-            has_zero = False
-            first_zero_idx = -1
-            for i in range(n):
-                if digits[i] == 0:
-                    has_zero = True
-                    if first_zero_idx == -1:
-                       first_zero_idx = i
-            if not has_zero: return num # num is already zero-free
+            if '0' in num:
+                return '1' * (len(num) + 1)
+            return num
 
-            # Find the rightmost digit < 9 strictly before the leftmost zero
-            j = -1
-            for i in range(first_zero_idx - 1, -1, -1):
-                 if digits[i] < 9:
-                     j = i
-                     break
-
-            if j == -1: # All digits before the first zero were 9 (or no digits before zero)
-                return '1' * (n + 1)
-            else:
-                # Increment the digit at index j
-                digits[j] += 1
-                # Set all subsequent digits (from j+1 to end) to '1'
-                for i in range(j + 1, n): digits[i] = 1
-                return "".join(map(str, digits))
-
-        # --- Handle t > 1 ---
-
-        # Check if t has prime factors other than {2, 3, 5, 7}
         t_factors = self.get_prime_factorization(t)
-        allowed_primes = {2, 3, 5, 7}
-        for p in t_factors:
-            if p not in allowed_primes:
-                 return "-1" # t has disallowed prime factors
+        if any(p not in {2, 3, 5, 7} for p in t_factors):
+            return "-1"
 
-        # Precompute factorizations for digits 1-9
-        digit_factors = {d: self.get_prime_factorization(d) for d in range(1, 10)}
+        p_factors_map = {
+            d: self.get_prime_factorization(d) for d in range(1, 10)
+        }
 
-        # Check if the original number `num` is a valid solution
-        if '0' not in num:
-            current_g = 1
-            for digit in num:
-                current_g = _gcd(current_g * int(digit), t)
-            if current_g == t:
-                 return num
+        p2, p3, p5, p7 = t_factors.get(2, 0), t_factors.get(3, 0), t_factors.get(5, 0), t_factors.get(7, 0)
+        
+        max_len = 60
+        min_len_dp = {}
+        queue = deque([(0, 0, 0, 0, 0)])
+        min_len_dp[(0, 0, 0, 0)] = 0
+
+        while queue:
+            length, c2, c3, c5, c7 = queue.popleft()
+            if length + 1 > max_len:
+                continue
+            for d in range(2, 10):
+                d_factors = p_factors_map[d]
+                n2, n3, n5, n7 = (min(p2, c2 + d_factors[2]),
+                                  min(p3, c3 + d_factors[3]),
+                                  min(p5, c5 + d_factors[5]),
+                                  min(p7, c7 + d_factors[7]))
+                if (n2, n3, n5, n7) not in min_len_dp:
+                    min_len_dp[(n2, n3, n5, n7)] = length + 1
+                    queue.append((length + 1, n2, n3, n5, n7))
+
+        @lru_cache(None)
+        def get_smallest_suffix(length, f2, f3, f5, f7):
+            if f2 <= 0 and f3 <= 0 and f5 <= 0 and f7 <= 0:
+                return '1' * length
+            if length == 0:
+                return None
+
+            for d in range(1, 10):
+                d_factors = p_factors_map[d]
+                nf2, nf3, nf5, nf7 = max(0, f2 - d_factors[2]), max(0, f3 - d_factors[3]), max(0, f5 - d_factors[5]), max(0, f7 - d_factors[7])
+                
+                needed_len = min_len_dp.get((nf2, nf3, nf5, nf7), float('inf'))
+
+                if needed_len <= length - 1:
+                    suffix = get_smallest_suffix(length - 1, nf2, nf3, nf5, nf7)
+                    if suffix is not None:
+                        return str(d) + suffix
+            return None
 
         n = len(num)
-        # Use a tuple of sorted items for canonical representation of target factors
-        target_factors_tuple = tuple(sorted(t_factors.items()))
+        if '0' not in num:
+            num_factors = Counter()
+            for digit_char in num:
+                num_factors.update(p_factors_map[int(digit_char)])
+            if all(num_factors[p] >= count for p, count in t_factors.items()):
+                return num
 
-        # Memoization dictionaries
-        memo = {}
-        memo_longer = {}
+        for i in range(n, -1, -1):
+            prefix = num[:i]
+            
+            start_digit = 1
+            if i < n:
+                start_digit = int(num[i]) + 1
 
-        # --- Helper: Pruning Check ---
-        def check_pruning(remaining_len, current_factors_cnt):
-            """Checks if it's possible to achieve target factors with remaining digits."""
-            if remaining_len < 0: return True # Should not happen
+            for d_val in range(start_digit, 10):
+                d = str(d_val)
+                new_prefix = prefix + d
+                
+                prefix_factors = Counter()
+                for digit_char in new_prefix:
+                    digit = int(digit_char)
+                    if digit > 0:
+                        prefix_factors.update(p_factors_map[digit])
 
-            # Calculate needed factors
-            needed_factors = Counter()
-            possible = True
-            for p, target_count in t_factors.items():
-                 needed = target_count - current_factors_cnt[p]
-                 if needed <= 0: continue
+                rem_f2 = max(0, p2 - prefix_factors.get(2, 0))
+                rem_f3 = max(0, p3 - prefix_factors.get(3, 0))
+                rem_f5 = max(0, p5 - prefix_factors.get(5, 0))
+                rem_f7 = max(0, p7 - prefix_factors.get(7, 0))
 
-                 # Max power of p achievable with remaining_len digits
-                 max_power = 0
-                 if p == 2: max_power = 3 * remaining_len # From digit 8
-                 elif p == 3: max_power = 2 * remaining_len # From digit 9
-                 elif p == 5: max_power = 1 * remaining_len # From digit 5
-                 elif p == 7: max_power = 1 * remaining_len # From digit 7
-                 # No other primes possible in t_factors at this point
-
-                 if needed > max_power:
-                     possible = False
-                     break
-            return not possible # Return True if pruning should occur
-
-        # --- Helper: Canonical Factor Tuple ---
-        def factors_to_tuple(factors_cnt):
-             """Creates a canonical tuple representation for memoization key."""
-             # Only include primes relevant to t
-             items = []
-             for p, target_count in t_factors.items():
-                 # Store the current count for prime p, capped at target_count
-                 current_count = min(factors_cnt[p], target_count)
-                 if current_count > 0: # Only store non-zero counts
-                     items.append((p, current_count))
-             return tuple(sorted(items))
-
-        # --- DFS for length n ---
-        def dfs(index, current_factors_tuple, is_tight):
-            state = (index, current_factors_tuple, is_tight)
-            if state in memo:
-                return memo[state]
-
-            current_factors_cnt = Counter(dict(current_factors_tuple))
-
-            # Base case: Check if target factors are met (using tuple comparison)
-            if current_factors_tuple == target_factors_tuple:
-                return '1' * (n - index) # Fill rest with 1s
-
-            # Base case: Reached end without meeting target
-            if index == n:
-                return None
-
-            # Pruning check
-            if check_pruning(n - index, current_factors_cnt):
-                 memo[state] = None
-                 return None
-
-            res = None
-            lower_bound = int(num[index]) if is_tight else 1
-
-            for d in range(lower_bound, 10):
-                if d == 0: continue # Skip zero
-
-                # Calculate next factors state
-                next_factors_cnt = current_factors_cnt.copy()
-                for p, count in digit_factors[d].items():
-                    if p in t_factors: # Only consider primes relevant to t
-                         # Accumulate count, but cap at the target count for that prime
-                         next_factors_cnt[p] = min(t_factors[p], current_factors_cnt[p] + count)
-
-                next_factors_tuple = factors_to_tuple(next_factors_cnt)
-                next_tight = is_tight and (d == lower_bound)
-
-                suffix = dfs(index + 1, next_factors_tuple, next_tight)
-
-                if suffix is not None:
-                    res = str(d) + suffix
-                    break # Found smallest for this branch
-
-            memo[state] = res # Store result in memo
-            return res
-
-        # --- DFS for length n+1 ---
-        m = n + 1
-        def dfs_longer(index, current_factors_tuple):
-            state = (index, current_factors_tuple)
-            if state in memo_longer:
-                return memo_longer[state]
-
-            current_factors_cnt = Counter(dict(current_factors_tuple))
-
-            if current_factors_tuple == target_factors_tuple:
-                return '1' * (m - index)
-
-            if index == m:
-                return None
-
-            if check_pruning(m - index, current_factors_cnt):
-                 memo_longer[state] = None
-                 return None
-
-            res = None
-            for d in range(1, 10): # Digits 1-9
-                next_factors_cnt = current_factors_cnt.copy()
-                for p, count in digit_factors[d].items():
-                     if p in t_factors:
-                          next_factors_cnt[p] = min(t_factors[p], current_factors_cnt[p] + count)
-
-                next_factors_tuple = factors_to_tuple(next_factors_cnt)
-                suffix = dfs_longer(index + 1, next_factors_tuple)
-
-                if suffix is not None:
-                    res = str(d) + suffix
-                    break
-            memo_longer[state] = res # Store result
-            return res
-
-        # --- Main Logic Execution for t > 1 ---
-        initial_factors_tuple = tuple() # Represents gcd=1 state (empty factors)
-        memo.clear() # Clear memoization table
-        solution_n = dfs(0, initial_factors_tuple, True)
-
-        if solution_n is not None:
-            return solution_n
-
-        memo_longer.clear() # Clear memoization table
-        solution_n_plus_1 = dfs_longer(0, initial_factors_tuple)
-
-        return solution_n_plus_1 if solution_n_plus_1 is not None else "-1"
+                rem_len = n - len(new_prefix)
+                needed_len = min_len_dp.get((rem_f2, rem_f3, rem_f5, rem_f7), float('inf'))
+                
+                if needed_len <= rem_len:
+                    suffix = get_smallest_suffix(rem_len, rem_f2, rem_f3, rem_f5, rem_f7)
+                    if suffix is not None:
+                        return new_prefix + suffix
+        
+        for length in range(n + 1, max_len + 2):
+            res = get_smallest_suffix(length, p2, p3, p5, p7)
+            if res is not None:
+                return res
+                
+        return "-1"
