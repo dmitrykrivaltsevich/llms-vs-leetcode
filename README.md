@@ -21,7 +21,7 @@ Here is a list of the LeetCode problems that have been solved so far:
 -   [746. Min Cost Climbing Stairs](_0746_min_cost_climbing_stairs.py)
 -   [2115. Find All Possible Recipes from Given Supplies](_2115_find_all_possible_recipes_from_given_supplies.py)
 -   [2685. Count the Number of Complete Components](_2685_count_the_number_of_complete_components.py)
--   [3348. Smallest Divisible Digit Product 2](_3348_smallest_divisible_digit_product_2.py)
+
 
 ## How to Use
 
