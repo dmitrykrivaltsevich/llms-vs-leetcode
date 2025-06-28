@@ -20,8 +20,6 @@ class Solution:
 
     def smallestNumber(self, num: str, t: int) -> str:
         if t == 1:
-            if '0' in num:
-                return '1' * (len(num) + 1)
             return num
 
         t_factors = self.get_prime_factorization(t)
@@ -31,88 +29,119 @@ class Solution:
         p_factors_map = {
             d: self.get_prime_factorization(d) for d in range(1, 10)
         }
+        p_factors_map[0] = Counter()
 
+        n = len(num)
         p2, p3, p5, p7 = t_factors.get(2, 0), t_factors.get(3, 0), t_factors.get(5, 0), t_factors.get(7, 0)
-        
-        max_len = 60
+
         min_len_dp = {}
-        queue = deque([(0, 0, 0, 0, 0)])
+        queue = deque([(0, (0, 0, 0, 0))])
         min_len_dp[(0, 0, 0, 0)] = 0
 
-        while queue:
-            length, c2, c3, c5, c7 = queue.popleft()
-            if length + 1 > max_len:
+        q_for_min_len = deque([(0, 0, 0, 0, 0)])
+        min_len_dp_no_zero = {(0,0,0,0): 0}
+
+        while q_for_min_len:
+            length, c2, c3, c5, c7 = q_for_min_len.popleft()
+            if length + 1 > n + 25:
                 continue
             for d in range(2, 10):
                 d_factors = p_factors_map[d]
-                n2, n3, n5, n7 = (min(p2, c2 + d_factors[2]),
-                                  min(p3, c3 + d_factors[3]),
-                                  min(p5, c5 + d_factors[5]),
-                                  min(p7, c7 + d_factors[7]))
-                if (n2, n3, n5, n7) not in min_len_dp:
-                    min_len_dp[(n2, n3, n5, n7)] = length + 1
-                    queue.append((length + 1, n2, n3, n5, n7))
+                n2 = min(p2, c2 + d_factors.get(2, 0))
+                n3 = min(p3, c3 + d_factors.get(3, 0))
+                n5 = min(p5, c5 + d_factors.get(5, 0))
+                n7 = min(p7, c7 + d_factors.get(7, 0))
+                state = (n2, n3, n5, n7)
+                if state not in min_len_dp_no_zero:
+                    min_len_dp_no_zero[state] = length + 1
+                    q_for_min_len.append((length + 1, n2, n3, n5, n7))
 
         @lru_cache(None)
-        def get_smallest_suffix(length, f2, f3, f5, f7):
-            if f2 <= 0 and f3 <= 0 and f5 <= 0 and f7 <= 0:
-                return '1' * length
-            if length == 0:
+        def get_smallest_suffix(f2, f3, f5, f7):
+            state = (f2, f3, f5, f7)
+            if state not in min_len_dp_no_zero:
+                return None
+            length = min_len_dp_no_zero[state]
+            res = []
+            curr_f = state
+            current_len = length
+            while len(res) < length:
+                found = False
+                for d in range(1, 10):
+                    d_factors = p_factors_map[d]
+                    prev_f2 = max(0, curr_f[0] - d_factors.get(2, 0))
+                    prev_f3 = max(0, curr_f[1] - d_factors.get(3, 0))
+                    prev_f5 = max(0, curr_f[2] - d_factors.get(5, 0))
+                    prev_f7 = max(0, curr_f[3] - d_factors.get(7, 0))
+                    prev_state = (prev_f2, prev_f3, prev_f5, prev_f7)
+                    if min_len_dp_no_zero.get(prev_state, float('inf')) == current_len - 1:
+                        res.append(str(d))
+                        curr_f = prev_state
+                        current_len -= 1
+                        found = True
+                        break
+                if not found:
+                    return None
+            return "".join(sorted(res))
+
+        @lru_cache(None)
+        def solve(index, f2, f3, f5, f7, is_tight, is_started):
+            state = (index, f2, f3, f5, f7, is_tight, is_started)
+            if index >= n:
+                if f2 >= p2 and f3 >= p3 and f5 >= p5 and f7 >= p7:
+                    return ""
                 return None
 
-            for d in range(1, 10):
-                d_factors = p_factors_map[d]
-                nf2, nf3, nf5, nf7 = max(0, f2 - d_factors[2]), max(0, f3 - d_factors[3]), max(0, f5 - d_factors[5]), max(0, f7 - d_factors[7])
-                
-                needed_len = min_len_dp.get((nf2, nf3, nf5, nf7), float('inf'))
+            res = None
+            limit = int(num[index]) if is_tight else 9
 
-                if needed_len <= length - 1:
-                    suffix = get_smallest_suffix(length - 1, nf2, nf3, nf5, nf7)
-                    if suffix is not None:
-                        return str(d) + suffix
-            return None
+            start_digit = 0 if is_started else 1
+            if is_tight:
+                start_digit = limit
 
-        n = len(num)
-        if '0' not in num:
-            num_factors = Counter()
-            for digit_char in num:
-                num_factors.update(p_factors_map[int(digit_char)])
-            if all(num_factors[p] >= count for p, count in t_factors.items()):
-                return num
+            for d in range(start_digit, 10):
+                if d == 0:
+                    continue
 
-        for i in range(n, -1, -1):
-            prefix = num[:i]
+                new_tight = is_tight and (d == limit)
+
+                d_factors = p_factors_map.get(d, Counter())
+                nf2 = min(p2, f2 + d_factors.get(2, 0))
+                nf3 = min(p3, f3 + d_factors.get(3, 0))
+                nf5 = min(p5, f5 + d_factors.get(5, 0))
+                nf7 = min(p7, f7 + d_factors.get(7, 0))
+
+                rem_len = n - (index + 1)
+                needed_len = min_len_dp_no_zero.get((max(0, p2 - nf2), max(0, p3 - nf3), max(0, p5 - nf5), max(0, p7 - nf7)), float('inf'))
+
+                if needed_len > rem_len:
+                    continue
+
+                suffix = solve(index + 1, nf2, nf3, nf5, nf7, new_tight, is_started or d > 0)
+                if suffix is not None:
+                    current_res = str(d) + suffix
+                    if res is None or current_res < res:
+                        res = current_res
             
-            start_digit = 1
-            if i < n:
-                start_digit = int(num[i]) + 1
+            return res
 
-            for d_val in range(start_digit, 10):
-                d = str(d_val)
-                new_prefix = prefix + d
-                
-                prefix_factors = Counter()
-                for digit_char in new_prefix:
-                    digit = int(digit_char)
-                    if digit > 0:
-                        prefix_factors.update(p_factors_map[digit])
+        result = solve(0, 0, 0, 0, 0, True, False)
+        if result is not None:
+            return result
 
-                rem_f2 = max(0, p2 - prefix_factors.get(2, 0))
-                rem_f3 = max(0, p3 - prefix_factors.get(3, 0))
-                rem_f5 = max(0, p5 - prefix_factors.get(5, 0))
-                rem_f7 = max(0, p7 - prefix_factors.get(7, 0))
+        for length in range(n + 1, n + 25):
+            rem_len = length - 1
+            for first_digit in range(1, 10):
+                d_factors = p_factors_map[first_digit]
+                rem_f2 = max(0, p2 - d_factors.get(2, 0))
+                rem_f3 = max(0, p3 - d_factors.get(3, 0))
+                rem_f5 = max(0, p5 - d_factors.get(5, 0))
+                rem_f7 = max(0, p7 - d_factors.get(7, 0))
 
-                rem_len = n - len(new_prefix)
-                needed_len = min_len_dp.get((rem_f2, rem_f3, rem_f5, rem_f7), float('inf'))
-                
+                needed_len = min_len_dp_no_zero.get((rem_f2, rem_f3, rem_f5, rem_f7), float('inf'))
                 if needed_len <= rem_len:
-                    suffix = get_smallest_suffix(rem_len, rem_f2, rem_f3, rem_f5, rem_f7)
+                    suffix = get_smallest_suffix(rem_f2, rem_f3, rem_f5, rem_f7)
                     if suffix is not None:
-                        return new_prefix + suffix
-        
-        for length in range(n + 1, max_len + 2):
-            res = get_smallest_suffix(length, p2, p3, p5, p7)
-            if res is not None:
-                return res
-                
+                        padding = "1" * (rem_len - len(suffix))
+                        return str(first_digit) + padding + suffix
         return "-1"
