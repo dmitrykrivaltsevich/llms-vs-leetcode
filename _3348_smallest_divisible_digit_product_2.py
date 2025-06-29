@@ -20,8 +20,6 @@ class Solution:
 
     def smallestNumber(self, num: str, t: int) -> str:
         if t == 1:
-            if '0' in num:
-                return '1' * (len(num) + 1)
             return num
 
         t_factors = self.get_prime_factorization(t)
@@ -36,18 +34,14 @@ class Solution:
         n = len(num)
         p2, p3, p5, p7 = t_factors.get(2, 0), t_factors.get(3, 0), t_factors.get(5, 0), t_factors.get(7, 0)
 
-        min_len_dp = {}
-        queue = deque([(0, (0, 0, 0, 0))])
-        min_len_dp[(0, 0, 0, 0)] = 0
-
         q_for_min_len = deque([(0, 0, 0, 0, 0)])
         min_len_dp_no_zero = {(0,0,0,0): 0}
 
-        max_len = n + 25
+        max_suffix_len = 40
 
         while q_for_min_len:
             length, c2, c3, c5, c7 = q_for_min_len.popleft()
-            if length + 1 > max_len:
+            if length + 1 > max_suffix_len:
                 continue
             for d in range(2, 10):
                 d_factors = p_factors_map[d]
@@ -72,7 +66,7 @@ class Solution:
             while len(res) < length:
                 found = False
                 for d in range(1, 10):
-                    d_factors = p_factors_map[d]
+                    d_factors = p_factors_map.get(d, Counter())
                     prev_f2 = max(0, curr_f[0] - d_factors.get(2, 0))
                     prev_f3 = max(0, curr_f[1] - d_factors.get(3, 0))
                     prev_f5 = max(0, curr_f[2] - d_factors.get(5, 0))
@@ -88,53 +82,52 @@ class Solution:
                     return None
             return "".join(sorted(res))
 
-        @lru_cache(None)
-        def solve(index, f2, f3, f5, f7, is_tight, is_started):
-            state = (index, f2, f3, f5, f7, is_tight, is_started)
-            if index >= n:
-                if f2 >= p2 and f3 >= p3 and f5 >= p5 and f7 >= p7:
-                    return ""
-                return None
+        # Check if num itself is a solution
+        num_factors = Counter()
+        has_zero = '0' in num
+        if not has_zero:
+            for char_d in num:
+                num_factors += p_factors_map[int(char_d)]
+            if num_factors.get(2,0) >= p2 and num_factors.get(3,0) >= p3 and num_factors.get(5,0) >= p5 and num_factors.get(7,0) >= p7:
+                return num
 
-            res = None
-            limit = int(num[index]) if is_tight else 9
+        # Try to find a solution of length n by changing num from right to left
+        for i in range(n - 1, -1, -1):
+            prefix = num[:i]
+            if '0' in prefix:
+                continue
 
-            start_digit = 0 if is_started else 1
-            if is_tight:
-                start_digit = limit
+            prefix_factors = Counter()
+            for char_d in prefix:
+                prefix_factors += p_factors_map[int(char_d)]
 
-            for d in range(start_digit, 10):
-                if d == 0:
-                    continue
+            original_digit = int(num[i])
+            for d in range(original_digit + 1, 10):
+                if i == 0 and d == 0: continue
 
-                new_tight = is_tight and (d == limit)
+                current_factors = prefix_factors.copy()
+                if d != 0:
+                    current_factors += p_factors_map.get(d, Counter())
+                
+                rem_f2 = max(0, p2 - current_factors.get(2,0))
+                rem_f3 = max(0, p3 - current_factors.get(3,0))
+                rem_f5 = max(0, p5 - current_factors.get(5,0))
+                rem_f7 = max(0, p7 - current_factors.get(7,0))
 
-                d_factors = p_factors_map.get(d, Counter())
-                nf2 = min(p2, f2 + d_factors.get(2, 0))
-                nf3 = min(p3, f3 + d_factors.get(3, 0))
-                nf5 = min(p5, f5 + d_factors.get(5, 0))
-                nf7 = min(p7, f7 + d_factors.get(7, 0))
+                rem_len = n - (i + 1)
+                needed_len = min_len_dp_no_zero.get((rem_f2, rem_f3, rem_f5, rem_f7), float('inf'))
 
-                rem_len = n - (index + 1)
-                needed_len = min_len_dp_no_zero.get((max(0, p2 - nf2), max(0, p3 - nf3), max(0, p5 - nf5), max(0, p7 - nf7)), float('inf'))
+                if needed_len <= rem_len:
+                    suffix = get_smallest_suffix(rem_f2, rem_f3, rem_f5, rem_f7)
+                    if suffix is not None:
+                        padding = '1' * (rem_len - len(suffix))
+                        return prefix + str(d) + padding + suffix
 
-                if needed_len > rem_len:
-                    continue
-
-                suffix = solve(index + 1, nf2, nf3, nf5, nf7, new_tight, is_started or d > 0)
-                if suffix is not None:
-                    return str(d) + suffix
-
-            return res
-
-        result = solve(0, 0, 0, 0, 0, True, False)
-        if result is not None:
-            return result
-
-        for length in range(n + 1, max_len + 2):
+        # Search for solutions with length > n
+        for length in range(n + 1, n + max_suffix_len + 2):
             rem_len = length - 1
             for first_digit in range(1, 10):
-                d_factors = p_factors_map[first_digit]
+                d_factors = p_factors_map.get(first_digit, Counter())
                 rem_f2 = max(0, p2 - d_factors.get(2, 0))
                 rem_f3 = max(0, p3 - d_factors.get(3, 0))
                 rem_f5 = max(0, p5 - d_factors.get(5, 0))

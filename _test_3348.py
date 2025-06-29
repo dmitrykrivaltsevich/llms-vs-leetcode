@@ -77,6 +77,10 @@ class TestSmallestNumber(unittest.TestCase):
         self.assertIsInstance(result, str, "The function should return a string.")
         self.assertNotEqual(result, "-1", "The function should find a valid result.")
 
+    def test_user_case(self):
+        s = Solution()
+        self.assertEqual(s.smallestNumber("20091", 128), "21188")
+
 
 if __name__ == '__main__':
     unittest.main()
